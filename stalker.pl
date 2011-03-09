@@ -80,15 +80,15 @@ sub whois_request {
     my ( $me, $n, $u, $h ) = split(" ", $data );
    
     $server->printformat($n,MSGLEVEL_CRAP,$IRSSI{'name'},$n, 
-        join( ", ", (get_records('host', $h, $server->{address}))) . "." );
+        join( ", ", (get_records('host', $h, $server->{chatnet}))) . "." );
 }
 
 sub host_request {
-    windowPrint( join( ", ", (get_records('host', $_[0], $_[1]->{address}))) . ".");
+    windowPrint( join( ", ", (get_records('host', $_[0], $_[1]->{chatnet}))) . ".");
 }
 
 sub nick_request {
-    windowPrint( join( ", ", (get_records('nick', $_[0], $_[1]->{address}))) . ".");
+    windowPrint( join( ", ", (get_records('nick', $_[0], $_[1]->{chatnet}))) . ".");
 }
 
 #   Record Adding Functions
@@ -96,11 +96,11 @@ sub nick_joined {
     my ( $server, $channel, $nick, $address ) = @_;
     my ( $user, $host ) = ( split ( '@', $address, 2 ) );
 
-    add_record( $nick, $user, $host, $server->{address});
+    add_record( $nick, $user, $host, $server->{chatnet});
     
     if ( Irssi::settings_get_bool($IRSSI{name} . "_stalk_on_join") ) {
         my $window = $server->channel_find($channel);
-        my @used_nicknames = get_records( 'host', $host, $server->{address} );
+        my @used_nicknames = get_records( 'host', $host, $server->{chatnet} );
         
         $window->printformat( MSGLEVEL_JOINS, 'stalker_join', 
             $nick, $address, $channel, join( ", ", @used_nicknames )); 
@@ -109,13 +109,13 @@ sub nick_joined {
 }
 
 sub nick_changed_channel {
-    add_record( $_[1]->{nick}, (split( '@', $_[1]->{host} )), $_[0]->{server}->{address} );
+    add_record( $_[1]->{nick}, (split( '@', $_[1]->{host} )), $_[0]->{server}->{chatnet} );
 }
 
 sub channel_sync {
     my ( $channel ) = @_;
     
-    my $serv = $channel->{server}->{address};
+    my $serv = $channel->{server}->{chatnet};
     
     for my $nick ( $channel->nicks() ) {
         last if $nick->{host} eq ''; # Sometimes channel sync doesn't give us this...
