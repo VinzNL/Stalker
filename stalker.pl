@@ -50,6 +50,7 @@ Irssi::settings_add_bool( 'Stalker', $IRSSI{name} . "_ignore_guest_nicks", 1 );
 Irssi::settings_add_bool( 'Stalker', $IRSSI{name} . "_ignore_guest_hosts", 0 );
 Irssi::settings_add_bool( 'Stalker', $IRSSI{name} . "_debug_log", 0 );
 Irssi::settings_add_bool( 'Stalker', $IRSSI{name} . "_stalk_on_join", 0 );
+Irssi::settings_add_bool( 'Stalker', $IRSSI{name} . "_strip_trailing", 1 );
 
 my $count;
 my %data;
@@ -201,6 +202,22 @@ sub get_records {
     for my $k ( keys %data ) {
         debugPrint( "info", "$type query for records on $query from server $serv returned: $k" );
         push @return, $k if $data{$k} eq 'nick';
+    }
+
+    if ( Irssi::settings_get_bool($IRSSI{name} . "_strip_trailing") ) {
+        my %nicks = map { $_ => 1 } @return;
+        foreach (keys %nicks) {
+            my $nick = $_;
+            while ($nick =~ m/[-_~^`]$/) {
+                my $nickchopped = substr $nick, 0, -1;
+                if (exists $nicks{$nickchopped}) {
+                    delete $nicks{$_};
+                    last;
+                }
+                $nick = $nickchopped;
+            }
+        }
+        @return = keys %nicks;
     }
 
     # case-insensitive sort
