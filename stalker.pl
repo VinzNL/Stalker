@@ -51,6 +51,7 @@ Irssi::settings_add_bool( 'Stalker', $IRSSI{name} . "_ignore_guest_hosts", 0 );
 Irssi::settings_add_bool( 'Stalker', $IRSSI{name} . "_debug_log", 0 );
 Irssi::settings_add_bool( 'Stalker', $IRSSI{name} . "_stalk_on_join", 0 );
 Irssi::settings_add_bool( 'Stalker', $IRSSI{name} . "_strip_trailing", 1 );
+Irssi::settings_add_bool( 'Stalker', $IRSSI{name} . "_strip_suffix", 1 );
 
 my $count;
 my %data;
@@ -204,8 +205,8 @@ sub get_records {
         push @return, $k if $data{$k} eq 'nick';
     }
 
+    my %nicks = map { $_ => 1 } @return;
     if ( Irssi::settings_get_bool($IRSSI{name} . "_strip_trailing") ) {
-        my %nicks = map { $_ => 1 } @return;
         foreach (keys %nicks) {
             my $nick = $_;
             while ($nick =~ m/[-_~^`]$/) {
@@ -217,8 +218,19 @@ sub get_records {
                 $nick = $nickchopped;
             }
         }
-        @return = keys %nicks;
     }
+
+    if ( Irssi::settings_get_bool($IRSSI{name} . "_strip_suffix") ) {
+        foreach (keys %nicks) {
+            my $nick = $_;
+            if ($nick =~ s/^([^|]+)\|.*$/$1/) {
+                delete $nicks{$_};
+                $nicks{$nick} = 1;
+            }
+        }
+    }
+
+    @return = keys %nicks;
 
     # case-insensitive sort
     @return = sort {uc($a) cmp uc($b)} @return;
