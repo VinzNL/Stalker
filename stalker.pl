@@ -202,6 +202,10 @@ sub get_records {
         debugPrint( "info", "$type query for records on $query from server $serv returned: $k" );
         push @return, $k if $data{$k} eq 'nick';
     }
+
+    # case-insensitive sort
+    @return = sort {uc($a) cmp uc($b)} @return;
+
     return @return;
 }
 
